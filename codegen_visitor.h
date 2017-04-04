@@ -19,6 +19,7 @@ public:
     virtual void visit(Statement &stmt) = 0;
     virtual void visit(IntConst &int_const) = 0;
     virtual void visit(BinaryExpr &binary_expr) = 0;
+    virtual void visit(ComparisonExpr &comparison_expr) = 0;
     virtual void visit(Variable &var) = 0;
     virtual void visit(VariableAssignment &var_assignment) = 0;
     virtual void visit(FunctionCall &function_call) = 0;
@@ -36,6 +37,7 @@ public:
     void visit(Statement &stmt);
     void visit(IntConst &int_const);
     void visit(BinaryExpr &binary_expr);
+    void visit(ComparisonExpr &comparison_expr);
     void visit(Variable &var);
     void visit(VariableAssignment &var_assignment);
     void visit(FunctionCall &function_call);

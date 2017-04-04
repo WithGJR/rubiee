@@ -4,8 +4,9 @@ Rubiee is a programming language based on LLVM. Its syntax is very similar to Ru
 
 Rubiee has no `Class`, it's just a simple language with only the support of `function`, `variable` and `control flow construct`. 
 
-## Progress
+## Current Progress
 
 1. Simple arithmetic operators
-2. Variable
-3. Function call 
+2. Comparison operators 
+3. Variable
+4. Function call 

@@ -50,6 +50,7 @@
 %token L_PAREN
 %token R_PAREN
 
+%left GREATER_THAN LESS_THAN EQUAL GREATER_THAN_OR_EQUAL LESS_THAN_OR_EQUAL
 %left PLUS MINUS
 %left MUL DIV
 
@@ -72,6 +73,11 @@ expr    : INT_CONST { $$ = new IntConst($1); }
         | expr PLUS expr { $$ = new BinaryExpr($1, $3, '+'); }
         | expr MINUS expr { $$ = new BinaryExpr($1, $3, '-'); }
         | expr MUL expr { $$ = new BinaryExpr($1, $3, '*'); }
+        | expr GREATER_THAN_OR_EQUAL expr { $$ = new ComparisonExpr($1, $3, ">="); }
+        | expr LESS_THAN_OR_EQUAL expr { $$ = new ComparisonExpr($1, $3, "<="); }
+        | expr GREATER_THAN expr { $$ = new ComparisonExpr($1, $3, ">"); }
+        | expr LESS_THAN expr { $$ = new ComparisonExpr($1, $3, "<"); }
+        | expr EQUAL expr { $$ = new ComparisonExpr($1, $3, "=="); }
         | IDENTIFIER L_PAREN args R_PAREN { $$ = new FunctionCall( *$1, std::move(*$3) ); }
         | IDENTIFIER { 
                 $$ = new Variable(*$1); 

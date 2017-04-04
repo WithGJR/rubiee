@@ -15,6 +15,26 @@ typedef Rubiee::Parser::token token;
 
 %%
 
+">=" {
+  return(token::GREATER_THAN_OR_EQUAL);
+}
+
+"<=" {
+  return(token::LESS_THAN_OR_EQUAL);
+}
+
+">" {
+  return(token::GREATER_THAN);
+}
+
+"<" {
+  return(token::LESS_THAN);
+}
+
+"==" {
+  return(token::EQUAL);
+}
+
 "+" {
   return(token::PLUS);
 }
@@ -47,7 +67,7 @@ typedef Rubiee::Parser::token token;
   return(token::R_PAREN);
 }
  
-[1-9][0-9]* {
+0|[1-9][0-9]* {
   yylval->int_const = std::stoi(yytext);
   return(token::INT_CONST);
 }

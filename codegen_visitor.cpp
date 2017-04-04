@@ -105,6 +105,33 @@ void Rubiee::CodeGenVisitor::visit(BinaryExpr &binary_expr) {
     }
 }
 
+void Rubiee::CodeGenVisitor::visit(ComparisonExpr &comparison_expr) {
+    llvm::Value *lhs, *rhs;
+
+    (comparison_expr.leftOperand)->accept(*this);
+    lhs = generated_value;
+
+    (comparison_expr.rightOperand)->accept(*this);
+    rhs = generated_value;
+
+    if (!lhs || !rhs) {
+        generated_value = nullptr;
+        return;
+    }
+
+    if (comparison_expr.op == ">") {
+        generated_value = builder.CreateICmpSGT(lhs, rhs, ">");
+    } else if (comparison_expr.op == "<") {
+        generated_value = builder.CreateICmpSLT(lhs, rhs, "<");
+    } else if (comparison_expr.op == "==") {
+        generated_value = builder.CreateICmpEQ(lhs, rhs, "==");
+    } else if (comparison_expr.op == ">=") {
+        generated_value = builder.CreateICmpSGE(lhs, rhs, ">=");
+    } else if (comparison_expr.op == "<=") {
+        generated_value = builder.CreateICmpSLE(lhs, rhs, "<=");
+    }
+}
+
 void Rubiee::CodeGenVisitor::visit(Variable &var) {
     llvm::Value *variable = variables[var.name];
     if (!variable) {

@@ -31,6 +31,13 @@ void Rubiee::BinaryExpr::accept(ASTNodeVisitor &visitor) {
     visitor.visit(*this);
 }
 
+Rubiee::ComparisonExpr::ComparisonExpr(Expr *leftOperand, Expr *rightOperand, std::string op) 
+                                       : leftOperand(leftOperand), rightOperand(rightOperand), op(op) {};
+
+void Rubiee::ComparisonExpr::accept(ASTNodeVisitor &visitor) {
+    visitor.visit(*this);
+}
+
 Rubiee::FunctionCall::FunctionCall(std::string callee, std::vector<Expr*> args) 
                                    : callee(callee), args(args) {};
 

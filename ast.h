@@ -44,6 +44,17 @@ public:
   char op;
 };
 
+class ComparisonExpr : public Expr {
+public:
+  ComparisonExpr(Expr *leftOperand,
+                 Expr *rightOperand,
+                 std::string op);
+  void accept(ASTNodeVisitor &visitor);
+
+  Expr *leftOperand, *rightOperand;
+  std::string op;
+};
+
 class Variable : public Expr {
 public:
   Variable(std::string name);
