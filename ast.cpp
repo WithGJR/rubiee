@@ -38,6 +38,13 @@ void Rubiee::ComparisonExpr::accept(ASTNodeVisitor &visitor) {
     visitor.visit(*this);
 }
 
+Rubiee::IfExpr::IfExpr(Expr *condition, std::vector<Expr*> then_exprs, std::vector<Expr*> else_exprs) 
+                       : condition(condition), then_exprs(then_exprs), else_exprs(else_exprs) {};
+
+void Rubiee::IfExpr::accept(ASTNodeVisitor &visitor) {
+    visitor.visit(*this);
+}
+
 Rubiee::FunctionCall::FunctionCall(std::string callee, std::vector<Expr*> args) 
                                    : callee(callee), args(args) {};
 

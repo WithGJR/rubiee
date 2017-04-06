@@ -32,6 +32,7 @@
         }
         return nodes;
   }
+
 }
 
 %union {
@@ -45,6 +46,9 @@
 
 %token <int_const> INT_CONST
 %token <str_const> IDENTIFIER
+%token IF
+%token ELSE
+%token END
 %token ASSIGNMENT
 %token COMMA
 %token L_PAREN
@@ -54,7 +58,8 @@
 %left PLUS MINUS
 %left MUL DIV
 
-%type <nodes> exprs
+%type <nodes> nodes
+%type <exprs> exprs
 %type <expr> expr
 %type <exprs> args
 
@@ -62,10 +67,18 @@
 
 %%
 
-top : exprs { driver.set_nodes(transformTopLevelExprsIntoFunctions($1)); }
+top : nodes { driver.set_nodes(transformTopLevelExprsIntoFunctions($1)); }
     ;
 
-exprs   : expr { $$ = new std::vector<ASTNode*>(); $$->push_back($1); }
+nodes : exprs {
+                $$ = new std::vector<ASTNode*>();
+                for (unsigned i = 0; i < $1->size(); i++) {
+                        $$->push_back( (*$1)[i] );
+                }
+        }
+      ;
+
+exprs   : expr { $$ = new std::vector<Expr*>(); $$->push_back($1); }
         | exprs expr { $$ = $1; $$->push_back($2); }
         ;
 
@@ -78,6 +91,20 @@ expr    : INT_CONST { $$ = new IntConst($1); }
         | expr GREATER_THAN expr { $$ = new ComparisonExpr($1, $3, ">"); }
         | expr LESS_THAN expr { $$ = new ComparisonExpr($1, $3, "<"); }
         | expr EQUAL expr { $$ = new ComparisonExpr($1, $3, "=="); }
+        | IF expr exprs END { 
+                $$ = new IfExpr( 
+                        $2, 
+                        *$3, 
+                        std::vector<Expr*>() 
+                     ); 
+          }
+        | IF expr exprs ELSE exprs END { 
+                $$ = new IfExpr(
+                        $2, 
+                        *$3, 
+                        *$5
+                     ); 
+          }
         | IDENTIFIER L_PAREN args R_PAREN { $$ = new FunctionCall( *$1, std::move(*$3) ); }
         | IDENTIFIER { 
                 $$ = new Variable(*$1); 

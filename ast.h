@@ -55,6 +55,16 @@ public:
   std::string op;
 };
 
+class IfExpr : public Expr {
+public:
+  IfExpr(Expr *condition, std::vector<Expr*> then_exprs, std::vector<Expr*> else_exprs);
+  void accept(ASTNodeVisitor &visitor);
+
+  Expr *condition;
+  std::vector<Expr*> then_exprs;
+  std::vector<Expr*> else_exprs;
+};
+
 class Variable : public Expr {
 public:
   Variable(std::string name);

@@ -20,6 +20,7 @@ public:
     virtual void visit(IntConst &int_const) = 0;
     virtual void visit(BinaryExpr &binary_expr) = 0;
     virtual void visit(ComparisonExpr &comparison_expr) = 0;
+    virtual void visit(IfExpr &if_expr) = 0;
     virtual void visit(Variable &var) = 0;
     virtual void visit(VariableAssignment &var_assignment) = 0;
     virtual void visit(FunctionCall &function_call) = 0;
@@ -38,6 +39,7 @@ public:
     void visit(IntConst &int_const);
     void visit(BinaryExpr &binary_expr);
     void visit(ComparisonExpr &comparison_expr);
+    void visit(IfExpr &if_expr);
     void visit(Variable &var);
     void visit(VariableAssignment &var_assignment);
     void visit(FunctionCall &function_call);
@@ -65,7 +67,8 @@ private:
     
     // Functions 
     std::map<std::string, llvm::Function*> stdlib_functions;
-    llvm::BasicBlock *main_function;
+    // llvm::BasicBlock *main_function;
+    llvm::Function *main_function;
 
     // Methods
     void initModule(std::unique_ptr<llvm::Module> &module, std::string module_name); 

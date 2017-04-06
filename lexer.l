@@ -15,6 +15,18 @@ typedef Rubiee::Parser::token token;
 
 %%
 
+"if" {
+  return(token::IF);
+}
+
+"else" {
+  return(token::ELSE);
+}
+
+"end" {
+  return(token::END);
+}
+
 ">=" {
   return(token::GREATER_THAN_OR_EQUAL);
 }

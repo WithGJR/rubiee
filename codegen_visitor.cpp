@@ -42,7 +42,7 @@ void Rubiee::CodeGenVisitor::initStandardLibraryFunctions() {
 
 void Rubiee::CodeGenVisitor::initTopLevelExpr() {
     // All top level expression is placed at the main function
-    llvm::Function *fn = llvm::Function::Create(
+    main_function = llvm::Function::Create(
         llvm::FunctionType::get(
             llvm::Type::getVoidTy(context),
             std::vector<llvm::Type *>(0),
@@ -53,14 +53,15 @@ void Rubiee::CodeGenVisitor::initTopLevelExpr() {
         module.get()
     );
 
-    main_function = llvm::BasicBlock::Create(context, "entry", fn);
+    // main_function = llvm::BasicBlock::Create(context, "entry", fn);
+    llvm::BasicBlock::Create(context, "entry", main_function);
 }
 
 void Rubiee::CodeGenVisitor::executeCode() {
     // insert return instruction to the end of the main function
-    builder.SetInsertPoint(main_function);
+    builder.SetInsertPoint( &(main_function->back()) );
     builder.CreateRetVoid();
-
+    
     // Execute main function
     jit->addModule(std::move(module));
     auto symbol = jit->findSymbol("main");
@@ -72,9 +73,9 @@ void Rubiee::CodeGenVisitor::visit(Expr &expr) {}
 void Rubiee::CodeGenVisitor::visit(Statement &stmt) {}
 
 void Rubiee::CodeGenVisitor::visit(IntConst &int_const) {
-    generated_value = llvm::ConstantInt::get(
-        context, 
-        llvm::APInt(32, int_const.val, true)
+    generated_value = llvm::ConstantInt::getSigned(
+        llvm::Type::getInt32Ty(context),
+        int_const.val
     );
 }
 
@@ -130,6 +131,95 @@ void Rubiee::CodeGenVisitor::visit(ComparisonExpr &comparison_expr) {
     } else if (comparison_expr.op == "<=") {
         generated_value = builder.CreateICmpSLE(lhs, rhs, "<=");
     }
+}
+
+void Rubiee::CodeGenVisitor::visit(IfExpr &if_expr) {
+    if_expr.condition->accept(*this);
+    llvm::Value *cond = generated_value;
+
+    if (!cond) {
+        generated_value = nullptr;
+        return;
+    }
+
+    cond = builder.CreateICmpNE(
+        cond,
+        llvm::ConstantInt::getFalse(context),
+        "ifcond"
+    );
+
+    llvm::Function *current_function = builder.GetInsertBlock()->getParent();
+
+    llvm::BasicBlock *then_block = llvm::BasicBlock::Create(context, "then", current_function);
+    llvm::BasicBlock *else_block = llvm::BasicBlock::Create(context, "else");
+    llvm::BasicBlock *end_block = llvm::BasicBlock::Create(context, "end");
+
+    builder.CreateCondBr(cond, then_block, else_block);
+
+    // Generate code for `then_block`
+    builder.SetInsertPoint(then_block);
+
+    for (auto expr = if_expr.then_exprs.begin(); expr != if_expr.then_exprs.end(); ++expr) {
+        (*expr)->accept(*this);
+    }
+    llvm::Value *then_value = generated_value;
+
+    // `then_block` can be empty, use `0` as its return value
+    if (if_expr.then_exprs.size() == 0) {
+        then_value = llvm::ConstantInt::get(
+            context, 
+            llvm::APInt(32, 0, true)
+        );
+    }
+
+    if (!then_value) {
+        generated_value = nullptr;
+        return;
+    }
+
+    builder.CreateBr(end_block);
+
+    // Nested `if` can cause the then_block be changed, so we need to restore it
+    then_block = builder.GetInsertBlock();
+
+    // Generate code for `else_block`
+
+    current_function->getBasicBlockList().push_back(else_block);
+    builder.SetInsertPoint(else_block);
+
+    for (auto expr = if_expr.else_exprs.begin(); expr != if_expr.else_exprs.end(); ++expr) {
+        (*expr)->accept(*this);
+    }
+    llvm::Value *else_value = generated_value;
+
+    // `else_block` can be empty, use `0` as its return value
+    if (if_expr.else_exprs.size() == 0) {
+        else_value = llvm::ConstantInt::get(
+            context, 
+            llvm::APInt(32, 0, true)
+        );
+    }
+
+    if (!else_value) {
+        generated_value = nullptr;
+        return;
+    }
+
+    builder.CreateBr(end_block);
+
+    // Nested `if` can cause the else_block be changed, so we need to restore it
+    else_block = builder.GetInsertBlock();
+
+    // Generate code for `end_block`
+
+    current_function->getBasicBlockList().push_back(end_block);
+    builder.SetInsertPoint(end_block);
+
+    llvm::PHINode *phi_node = builder.CreatePHI(llvm::Type::getInt32Ty(context), 2, "if_val");
+    phi_node->addIncoming(then_value, then_block);
+    phi_node->addIncoming(else_value, else_block);
+
+    generated_value = phi_node;
 }
 
 void Rubiee::CodeGenVisitor::visit(Variable &var) {
@@ -218,7 +308,7 @@ void Rubiee::CodeGenVisitor::visit(FunctionPrototype &function_prototype) {
 }
 
 void Rubiee::CodeGenVisitor::visit(TopLevelExpr &top_level_expr) {
-    builder.SetInsertPoint(main_function);
+    builder.SetInsertPoint( &(main_function->back()) );
     top_level_expr.expr->accept(*this);
 }
 
