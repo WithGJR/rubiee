@@ -19,6 +19,10 @@ typedef Rubiee::Parser::token token;
   return(token::IF);
 }
 
+"for" {
+  return(token::FOR);
+}
+
 "else" {
   return(token::ELSE);
 }
@@ -69,6 +73,10 @@ typedef Rubiee::Parser::token token;
 
 "," {
   return(token::COMMA);
+}
+
+";" {
+  return(token::SEMICOLON);
 }
 
 "(" {

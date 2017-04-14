@@ -11,3 +11,4 @@ Rubiee has no `Class`, it's just a simple language with only the support of `fun
 3. Variable
 4. Function call 
 5. if construct
+6. for loop

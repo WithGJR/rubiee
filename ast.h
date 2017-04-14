@@ -65,6 +65,15 @@ public:
   std::vector<Expr*> else_exprs;
 };
 
+class ForLoopExpr : public Expr {
+public:
+  ForLoopExpr(Expr *start_expr, Expr *continue_condition, Expr *step_expr, std::vector<Expr*> body_exprs);
+  void accept(ASTNodeVisitor &visitor);
+
+  Expr *start_expr, *continue_condition, *step_expr;
+  std::vector<Expr*> body_exprs;
+};
+
 class Variable : public Expr {
 public:
   Variable(std::string name);

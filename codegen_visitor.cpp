@@ -61,7 +61,7 @@ void Rubiee::CodeGenVisitor::executeCode() {
     // insert return instruction to the end of the main function
     builder.SetInsertPoint( &(main_function->back()) );
     builder.CreateRetVoid();
-    
+
     // Execute main function
     jit->addModule(std::move(module));
     auto symbol = jit->findSymbol("main");
@@ -220,6 +220,47 @@ void Rubiee::CodeGenVisitor::visit(IfExpr &if_expr) {
     phi_node->addIncoming(else_value, else_block);
 
     generated_value = phi_node;
+}
+
+void Rubiee::CodeGenVisitor::visit(ForLoopExpr &for_loop_expr) {
+    for_loop_expr.start_expr->accept(*this);
+
+    llvm::Function *current_function = builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *before_loop_body_block = llvm::BasicBlock::Create(context, "before_loop_body", current_function);
+    llvm::BasicBlock *loop_body_block = llvm::BasicBlock::Create(context, "loop_body", current_function);
+    llvm::BasicBlock *after_loop_body_block = llvm::BasicBlock::Create(context, "after_loop_body");
+
+    builder.CreateBr(before_loop_body_block);
+    builder.SetInsertPoint(before_loop_body_block);
+
+    for_loop_expr.continue_condition->accept(*this);
+    llvm::Value *cond = generated_value;
+
+    if (!cond) {
+        generated_value = nullptr;
+        return;
+    }
+
+    cond = builder.CreateICmpEQ(
+        cond,
+        llvm::ConstantInt::getTrue(context),
+        "loop_cond"
+    );
+
+    builder.CreateCondBr(cond, loop_body_block, after_loop_body_block);
+
+    builder.SetInsertPoint(loop_body_block);
+    for (auto expr = for_loop_expr.body_exprs.begin(); expr != for_loop_expr.body_exprs.end(); ++expr) {
+        (*expr)->accept(*this);
+    }
+
+    for_loop_expr.step_expr->accept(*this);
+
+    builder.CreateBr(before_loop_body_block);
+
+    current_function->getBasicBlockList().push_back(after_loop_body_block);
+
+    builder.SetInsertPoint(after_loop_body_block);    
 }
 
 void Rubiee::CodeGenVisitor::visit(Variable &var) {

@@ -47,8 +47,10 @@
 %token <int_const> INT_CONST
 %token <str_const> IDENTIFIER
 %token IF
+%token FOR
 %token ELSE
 %token END
+%token SEMICOLON
 %token ASSIGNMENT
 %token COMMA
 %token L_PAREN
@@ -104,6 +106,9 @@ expr    : INT_CONST { $$ = new IntConst($1); }
                         *$3, 
                         *$5
                      ); 
+          }
+        | FOR expr SEMICOLON expr SEMICOLON expr exprs END { 
+                $$ = new ForLoopExpr($2, $4, $6, std::move(*$7)); 
           }
         | IDENTIFIER L_PAREN args R_PAREN { $$ = new FunctionCall( *$1, std::move(*$3) ); }
         | IDENTIFIER { 

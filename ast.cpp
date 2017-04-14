@@ -11,6 +11,13 @@ void Rubiee::IntConst::accept(ASTNodeVisitor &visitor) {
     visitor.visit(*this);
 }
 
+Rubiee::ForLoopExpr::ForLoopExpr(Expr *start_expr, Expr *continue_condition, Expr *step_expr, std::vector<Expr*> body_exprs) 
+                                 : start_expr(start_expr), continue_condition(continue_condition), step_expr(step_expr), body_exprs(body_exprs) {};
+
+void Rubiee::ForLoopExpr::accept(ASTNodeVisitor &visitor) {
+    visitor.visit(*this);
+}
+
 Rubiee::Variable::Variable(std::string name) : name(name) {};
 
 void Rubiee::Variable::accept(ASTNodeVisitor &visitor) {
