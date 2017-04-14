@@ -294,7 +294,8 @@ void Rubiee::CodeGenVisitor::visit(VariableAssignment &var_assignment) {
     var_assignment.expr->accept(*this);
     llvm::Value *init_value = generated_value;
 
-    generated_value = builder.CreateStore(init_value, variable_pointer);
+    builder.CreateStore(init_value, variable_pointer);
+    var_assignment.var->accept(*this);
 }
 
 void Rubiee::CodeGenVisitor::visit(FunctionCall &function_call) {
